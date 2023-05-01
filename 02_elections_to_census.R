@@ -79,7 +79,7 @@ data.inspect <-
 # And some that we can't be sure didn't involve independents
 
 
-# Leaves us with a sample of 745 observations, about 75% of the reported sample
+# Leaves us with a sample of 772 observations, about 80% of the reported sample
 data.jop <- data.jop[!is.na(data.jop$pop)]
 data.jop <- data.jop[!is.na(data.jop$lost_party)]
 data.jop <- data.jop[!is.na(data.jop$won_party)]

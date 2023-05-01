@@ -31,9 +31,11 @@ data.replicate <-
   ) %>%
   dplyr::mutate(
     spend.pc = ((spend * 1000 * CPI)/100)/pop,
-    spend.y2.pc = ((spend.y2 * 1000* CPI)/100)/pop,
+    spend.y2.pc = ((spend.y2 * 1000* CPI)/100)/pop.y2,
     spend.pc.diff = spend.y2.pc - spend.pc
   )
+
+sum(is.na(data.replicate$spend.pc.diff))
 
   
 # Initial Version -------------------------------------------------------
@@ -55,64 +57,17 @@ h = rdrobust(outcome,
              kernel = "uniform")$bws[1,1]
 
 # Local linear plot replicating figure
-ggplot(data.replicate) + 
-geom_point(aes(x = dshare, y = data.replicate$spend.pc.diff), alpha=.1) + 
-geom_smooth(data=subset(data.replicate, dshare > 0),
-            aes(x = dshare, y = spend.pc.diff,
-                weight=tri(dshare, h)),
-            method = 'lm', formula = y ~ poly(x, 1), size=1.5) + 
-  geom_smooth(data=subset(data.replicate, dshare < 0),
-              aes(x = dshare, y = spend.pc.diff,
-                  weight=tri(dshare, h)),
-              method = 'lm', formula = y ~ poly(x, 1), size=1.5) + 
-coord_cartesian(ylim = c(-1000, 1000)) + 
-geom_vline(xintercept=0) + 
-geom_hline(yintercept=0, lty='dotted') + 
-theme_bw() + 
-labs(x = "Democrats' Vote Share",
-     y = "Change in Per Capita Expenditures") +
-ggtitle("Second Year after Mayoral Election")
-
-# Handle Outliers Version -------------------------------------------------------
-var(data.replicate$spend.pc.diff, na.rm = TRUE)
-data.replicate$spend.pc.diff[data.replicate$spend.pc.diff > 22000]
-
-# Going to get rid of approx. 3 s.d. outliers
-data.replicate <- 
-  data.replicate %>%
-  dplyr::filter(
-    spend.pc.diff < 30000 & spend.pc.diff > -30000
-  )
-
-# And repeat
-outcome = data.replicate$spend.pc.diff
-forcing = data.replicate$dshare
-
-summary(rdrobust(outcome,
-                 forcing))
-
-summary(rdrobust(outcome,
-                 forcing,
-                 kernel = "uniform"))
-
-tri <- function (x, h, c=0) pmax(0, 1 - abs((x - c) / h))
-h = rdrobust(outcome,
-             forcing,
-             kernel = "uniform")$bws[1,1]
-
-## Headline Replication
-
 pdf("../output.pdf", width=8, height=6)
-ggplot(data.replicate) + 
+  ggplot(data.replicate) + 
   geom_point(aes(x = dshare, y = data.replicate$spend.pc.diff), alpha=.1) + 
   geom_smooth(data=subset(data.replicate, dshare > 0),
               aes(x = dshare, y = spend.pc.diff,
                   weight=tri(dshare, h)),
               method = 'lm', formula = y ~ poly(x, 1), size=1.5) + 
-  geom_smooth(data=subset(data.replicate, dshare < 0),
-              aes(x = dshare, y = spend.pc.diff,
-                  weight=tri(dshare, h)),
-              method = 'lm', formula = y ~ poly(x, 1), size=1.5) + 
+    geom_smooth(data=subset(data.replicate, dshare < 0),
+                aes(x = dshare, y = spend.pc.diff,
+                    weight=tri(dshare, h)),
+                method = 'lm', formula = y ~ poly(x, 1), size=1.5) + 
   coord_cartesian(ylim = c(-1000, 1000)) + 
   geom_vline(xintercept=0) + 
   geom_hline(yintercept=0, lty='dotted') + 
